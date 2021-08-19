@@ -1,1 +1,1 @@
-# Nervermore: multiple task learning benckmark
+# Nervermore: multi-task learning benckmark

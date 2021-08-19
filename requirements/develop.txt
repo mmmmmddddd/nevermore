@@ -1,0 +1,18 @@
+# dependencies for development(lint, tests and docs).
+coverage
+pytest
+pytest-xdist
+pytest-pythonpath
+pytest-cov
+pytest-html
+pytest-repeat
+pre-commit
+pre-commit-hooks
+isort
+flake8
+yapf
+autoflake
+# docs
+sphinx
+myst_parser
+sphinxcontrib-mermaid

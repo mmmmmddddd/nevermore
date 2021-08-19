@@ -1,4 +1,12 @@
 
+####### MLOps #######
+
+train:
+	python tools/train.py
+
+
+####### DEVOps #######
+
 dev:
 	pip3 install -r requirements/develop.txt
 	pre-commit install
@@ -10,19 +18,19 @@ upload:
 	python setup.py bdist_wheel upload -r hobot-local
 
 clean:
-	@rm -rf build dist src/*.egg-info
+	@rm -rf build dist *.egg-info
 
 test:
-	python /usr/bin/nosetests -s tests --verbosity=2 --rednose --nologcapture
+	pytest -s tests
 
 pep8:
-	autopep8 src/nevermore --recursive -i
+	autopep8 nevermore --recursive -i
 
 lint:
-	pylint src/nevermore --reports=n
+	pylint nevermore --reports=n
 
 lintfull:
-	pylint src/nevermore
+	pylint nevermore
 
 install:
 	python setup.py install

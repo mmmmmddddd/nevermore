@@ -92,3 +92,7 @@ ENV/
 
 *.swo
 *.swp
+
+# pint-horizon
+hostjob.yaml
+job.sh

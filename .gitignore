@@ -96,3 +96,11 @@ ENV/
 # pint-horizon
 hostjob.yaml
 job.sh
+
+# hydra
+.hydra
+outputs
+
+# nevermore
+data
+tmp_*

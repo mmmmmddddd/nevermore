@@ -2,9 +2,12 @@
 # -*- coding: utf-8 -*-
 import os
 
+import hydra
 import pytorch_lightning as pl
 import torch
 import torchmetrics
+from easydict import EasyDict as edict
+from omegaconf import DictConfig
 from pytorch_lightning.callbacks import ModelCheckpoint
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
@@ -15,26 +18,19 @@ from nevermore.model import SegNet
 
 # from torchvision import transforms
 
-##########
+############
 # variable #
-##########
-
+############
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 NUM_INPUT_CHANNELS = 3
 SEG_NUM_OUTPUT_CHANNELS = NUM_CLASSES
 DEP_NUM_OUTPUT_CHANNELS = 1
 NOR_NUM_OUTPUT_CHANNELS = 3
-LEARNING_RATE = 2e-5
-BATCH_SIZE = 1
-NUM_EPOCHS = 8890  # 80000steps / (24 batch_size * 4 gpus)
-NUM_GPUS = [1, 3]
-TASK = 'segmentation'
-GRADNORM = False
+
 
 ########
 # DATA #
 ########
-
-
 class DataModule(pl.LightningDataModule):
 
     def __init__(
@@ -121,8 +117,6 @@ class DataModule(pl.LightningDataModule):
 #########
 # MODEL #
 #########
-
-
 class Model(pl.LightningModule):
 
     def __init__(
@@ -279,34 +273,35 @@ class Model(pl.LightningModule):
 #########
 # ENTRY #
 #########
-
-
-def main():
-    pl.seed_everything(1822)
+@hydra.main(config_path=f'{ROOT}/configs', config_name='baseline')
+def main(cfg: DictConfig):
+    os.chdir(ROOT)
+    pl.seed_everything(cfg.seed)
 
     # ------------
     # args
     # ------------
-
-    local_train = not os.path.exists('/running_package')
-    if local_train:
-        data_root = '../NYU'
-        save_dir = os.path.join(data_root, "output")
+    if os.path.exists('/running_package'):
+        # run in remote, not local
+        data_root = cfg.remote_data_root
+        save_dir = cfg.remote_save_dir
     else:
-        data_root = '/cluster_home/custom_data/NYU'
-        save_dir = "/job_data"
+        data_root = cfg.data_root
+        save_dir = os.path.join("tmp_outputs")
+
     train_list_file = os.path.join(data_root, "train.txt")
     val_list_file = os.path.join(data_root, "val.txt")
     img_dir = os.path.join(data_root, "images")
     mask_dir = os.path.join(data_root, "segmentation")
     depth_dir = os.path.join(data_root, "depths")
     normal_dir = os.path.join(data_root, "normals")
+
     # ------------
     # data
     # ------------
     dm = DataModule(
         data_dir=data_root,
-        batch_size=BATCH_SIZE,
+        batch_size=cfg.batch_size,
         train_list_file=train_list_file,
         test_list_file=val_list_file,
         img_dir=img_dir,
@@ -323,9 +318,9 @@ def main():
         seg_output_channels=SEG_NUM_OUTPUT_CHANNELS,
         dep_output_channels=DEP_NUM_OUTPUT_CHANNELS,
         nor_output_channels=NOR_NUM_OUTPUT_CHANNELS,
-        learning_rate=LEARNING_RATE,
-        task=TASK,
-        use_gradnorm=GRADNORM
+        learning_rate=cfg.learning_rate,
+        task=cfg.task,
+        use_gradnorm=cfg.use_gradnorm
     )
 
     # ------------
@@ -334,22 +329,16 @@ def main():
     checkpoint_callback = ModelCheckpoint(
         monitor='val_loss',
         dirpath=save_dir,
-        filename='sample-NYUv2-' + TASK + '-{epoch:02d}-{val_loss:.2f}'
+        filename='sample-NYUv2-' + cfg.task + '-{epoch:02d}-{val_loss:.2f}'
     )
+
     # ------------
     # training
     # ------------
-
-    trainer = pl.Trainer(
-        max_epochs=NUM_EPOCHS,
-        gpus=NUM_GPUS,
-        check_val_every_n_epoch=1,
-        accelerator="ddp",
-        log_every_n_steps=5,
-        callbacks=[checkpoint_callback],
-        default_root_dir=save_dir,
-        num_sanity_val_steps=0  # before train, first val steps
-    )
+    pl_config = edict(cfg.lightning)
+    pl_config['callbacks'] = [checkpoint_callback]
+    pl_config['default_root_dir'] = save_dir
+    trainer = pl.Trainer(**pl_config)
     trainer.fit(model, dm)
 
     # ------------

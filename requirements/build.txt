@@ -1,0 +1,5 @@
+torch
+torchvision
+pytorch-lightning
+hydra
+easydict

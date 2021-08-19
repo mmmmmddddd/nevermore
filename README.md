@@ -1,4 +1,4 @@
-# Nervermore: multi-task learning benckmark
+# Nervermore: multi-task learning benchmark
 
 ### Install
 ```bash

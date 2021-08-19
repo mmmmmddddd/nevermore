@@ -1,5 +1,5 @@
 torch
 torchvision
 pytorch-lightning
-hydra
+hydra-core
 easydict

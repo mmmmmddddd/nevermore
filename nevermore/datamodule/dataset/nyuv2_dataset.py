@@ -7,6 +7,7 @@ import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
+from torchvision import transforms
 
 NYUv2_CLASSES = (
     'background',  # always index 0
@@ -28,7 +29,9 @@ NUM_CLASSES = len(NYUv2_CLASSES)
 
 
 class NYUv2Dateset(Dataset):
-    """NYUv2Dateset Dataset"""
+    """NYUv2Dateset Dataset
+    from https://github.com/say4n/pytorch-segnet/blob/master/src/dataset.py
+    """
 
     def __init__(
         self,
@@ -37,6 +40,8 @@ class NYUv2Dateset(Dataset):
         mask_dir,
         depth_dir,
         normal_dir,
+        input_size,
+        output_size,
         transform=None
     ):
         self.images = open(list_file, "rt").read().split("\n")[:-1]
@@ -52,7 +57,17 @@ class NYUv2Dateset(Dataset):
         self.depth_root_dir = depth_dir
         self.normal_root_dir = normal_dir
 
+        self.input_size = input_size
+        self.output_size = output_size
+
         self.counts = self.__compute_class_probability()
+
+        self.transform = transforms.Compose([
+            # transforms.Resize(input_resolution,interpolation=Image.NEAREST),
+            transforms.ToTensor(),
+            # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]
+        )
 
     def __len__(self):
         return len(self.images)
@@ -76,8 +91,13 @@ class NYUv2Dateset(Dataset):
         gt_mask = self.load_mask(path=mask_path)
         gt_depth = self.load_depth(path=depth_path)
         gt_normal = self.load_normal(path=normal_path)
+
+
+        if self.transform:
+            image = self.transform(image)
+        # image  C * H * W
         data = {
-            'image': torch.FloatTensor(image),
+            'image': image,
             'mask': torch.LongTensor(gt_mask),
             'depth': torch.FloatTensor(gt_depth),
             'normal': torch.FloatTensor(gt_normal),
@@ -94,8 +114,8 @@ class NYUv2Dateset(Dataset):
                 self.mask_root_dir, name + self.mask_extension
             )
 
-            raw_image = Image.open(mask_path).resize((224, 224), Image.NEAREST)
-            imx_t = np.array(raw_image).reshape(224 * 224)
+            raw_image = Image.open(mask_path).resize(self.output_size, Image.NEAREST)
+            imx_t = np.array(raw_image).reshape(self.output_size[0] * self.output_size[1])
             imx_t[imx_t == 255] = len(NYUv2_CLASSES)
 
             for i in range(NUM_CLASSES):
@@ -111,45 +131,51 @@ class NYUv2Dateset(Dataset):
 
     def load_image(self, path=None):
         raw_image = Image.open(path)
-        raw_image = np.transpose(raw_image.resize((224, 224)), (2, 1, 0))
-        imx_t = np.array(raw_image, dtype=np.float32) / 255.0
-
+        # raw_image = np.transpose(raw_image.resize(RESOLUTION, Image.NEAREST), (2, 0, 1))
+        # imx_t = np.array(raw_image, dtype=np.float32) / 255.0
+        imx_t = raw_image.resize(self.input_size, Image.NEAREST)
+        
         return imx_t
 
     def load_mask(self, path=None):
         raw_image = Image.open(path)
-        raw_image = raw_image.resize((224, 224), Image.NEAREST)
+        raw_image = raw_image.resize(self.output_size, Image.NEAREST)
         imx_t = np.array(raw_image)
         # border
         imx_t[imx_t == 255] = len(NYUv2_CLASSES)
-
+        # return H * W
         return imx_t
 
     def load_depth(self, path=None):
         raw_image = Image.open(path)
-        raw_image = raw_image.resize((224, 224), Image.NEAREST)
+        raw_image = raw_image.resize(self.output_size, Image.NEAREST)
         imx_t = np.array(raw_image)
 
         return imx_t
 
     def load_normal(self, path=None):
         raw_image = Image.open(path)
-        raw_image = raw_image.resize((224, 224), Image.NEAREST)
+        raw_image = raw_image.resize(self.output_size, Image.NEAREST)
         imx_t = np.array(raw_image)
-
+        imx_t = np.transpose(imx_t, (2,0,1))
+        #return C * H * W
         return imx_t
 
 
 if __name__ == "__main__":
     data_root = '/data/dixiao.wei/NYU'
-    list_file_path = os.path.join(data_root, "train.txt")
-    img_dir = os.path.join(data_root, "images", "train")
-    mask_dir = os.path.join(data_root, "segmentation", "train")
-    # depth_dir = os.path.join(data_root, "depths","train")
+    train_list_file = os.path.join(data_root, "train.txt")
+    img_dir = os.path.join(data_root, "images")
+    mask_dir = os.path.join(data_root, "segmentation")
+    depth_dir = os.path.join(data_root, "depths")
+    normal_dir = os.path.join(data_root, "normals")
 
-    objects_dataset = NYUv2Dateset(
-        list_file=list_file_path, img_dir=img_dir, mask_dir=mask_dir
-    )
+    objects_dataset = NYUv2Dateset(list_file=train_list_file,
+                                     img_dir=os.path.join(img_dir,"train"),
+                                     mask_dir=os.path.join(mask_dir,"train"),
+                                     depth_dir=os.path.join(depth_dir,"train"),
+                                     normal_dir=os.path.join(normal_dir,"train"),
+                                     )
 
     print(objects_dataset.get_class_probability())
 

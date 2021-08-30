@@ -104,3 +104,4 @@ outputs
 # nevermore
 data
 tmp_*
+.logs

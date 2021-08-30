@@ -8,6 +8,7 @@ import torch
 import torchmetrics
 from easydict import EasyDict as edict
 from omegaconf import DictConfig
+from pl_extension.loggers import LoggingLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
@@ -176,17 +177,20 @@ class Model(pl.LightningModule):
             loss = loss_seg + loss_dep + loss_nor
             self.log('train_loss', loss)
             self.log('train_loss_seg', loss_seg, prog_bar=True)
-            self.log('train_loss_dep', loss_dep, prog_bar=True)
-            self.log('train_loss_nor', loss_nor, prog_bar=True)
+            self.log('train_loss_depth', loss_dep, prog_bar=True)
+            self.log('train_loss_normal', loss_nor, prog_bar=True)
+            loss = loss_seg + loss_dep + loss_nor
         elif self.task == 'segmentation':
+            self.log('train_loss_seg', loss_seg)
             loss = loss_seg
-            self.log('train_loss', loss)
         elif self.task == 'depth':
+            self.log('train_loss_depth', loss_dep)
             loss = loss_dep
-            self.log('train_loss', loss)
         elif self.task == 'normal':
+            self.log('train_loss_normal', loss_nor)
             loss = loss_nor
-            self.log('train_loss', loss)
+        else:
+            raise ValueError(f"Unknown task: {self.task}")
         return loss
 
     def training_epoch_end(self, training_step_outputs):
@@ -279,6 +283,14 @@ def main(cfg: DictConfig):
     pl.seed_everything(cfg.seed)
 
     # ------------
+    # traincli
+    # ------------
+    if cfg.get('traincli', None) and not os.path.exists('/running_package'):
+        from pint_horizon.aidi import traincli
+        traincli(cfg.traincli)
+        return
+
+    # ------------
     # args
     # ------------
     if os.path.exists('/running_package'):
@@ -331,6 +343,7 @@ def main(cfg: DictConfig):
         dirpath=save_dir,
         filename='sample-NYUv2-' + cfg.task + '-{epoch:02d}-{val_loss:.2f}'
     )
+    logging_logger = LoggingLogger(logdir=save_dir, prefix='nevermore')
 
     # ------------
     # training
@@ -338,6 +351,7 @@ def main(cfg: DictConfig):
     pl_config = edict(cfg.lightning)
     pl_config['callbacks'] = [checkpoint_callback]
     pl_config['default_root_dir'] = save_dir
+    pl_config['logger'] = [logging_logger]
     trainer = pl.Trainer(**pl_config)
     trainer.fit(model, dm)
 

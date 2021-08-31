@@ -3,3 +3,4 @@ torchvision
 pytorch-lightning
 hydra-core
 easydict
+pl-extension

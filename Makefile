@@ -19,7 +19,7 @@ upload:
 	python setup.py bdist_wheel upload -r hobot-local
 
 clean:
-	@rm -rf build dist *.egg-info
+	@rm -rf build dist *.egg-info tmp_*
 
 test:
 	pytest -s tests

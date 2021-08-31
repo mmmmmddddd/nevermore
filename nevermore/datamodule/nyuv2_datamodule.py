@@ -1,8 +1,10 @@
 import os
 
 import pytorch_lightning as pl
-from .dataset import NUM_CLASSES, NYUv2Dateset
 from torch.utils.data import DataLoader
+
+from .dataset import NYUv2Dateset
+
 
 class NYUv2DataModule(pl.LightningDataModule):
 

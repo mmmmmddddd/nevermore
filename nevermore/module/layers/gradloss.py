@@ -1,12 +1,13 @@
-import torch.nn as nn
 import torch
+import torch.nn as nn
 
 
 class GradLoss(nn.Module):
+
     def __init__(self, alpha, n_task):
         '''
         Args:
-        alpha: float. 
+        alpha: float.
         loss: list of loss
         '''
 
@@ -14,9 +15,9 @@ class GradLoss(nn.Module):
 
         self.alpha = alpha
         self.weights = torch.nn.Parameter(torch.ones(n_task))
-        
+
     def forward(self, losses):
         total_losses = 0
-        for idx,loss in enumerate(losses):
+        for idx, loss in enumerate(losses):
             total_losses += loss * self.weights[idx]
         return total_losses

@@ -86,7 +86,6 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
-
 # -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -166,25 +165,26 @@ html_static_path = ['_static']
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'nevermoredoc'
 
-
 # -- Options for LaTeX output --------------------------------------------------
 
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+    # The paper size ('letterpaper' or 'a4paper').
+    #'papersize': 'letterpaper',
 
-# The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+    # The font size ('10pt', '11pt' or '12pt').
+    #'pointsize': '10pt',
 
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
+    # Additional stuff for the LaTeX preamble.
+    #'preamble': '',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'nevermore.tex', u'nevermore Documentation',
-   u'Kenneth Reitz', 'manual'),
+    (
+        'index', 'nevermore.tex', u'nevermore Documentation', u'Kenneth Reitz',
+        'manual'
+    ),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -207,19 +207,16 @@ latex_documents = [
 # If false, no module index is generated.
 #latex_domain_indices = True
 
-
 # -- Options for manual page output --------------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'nevermore', u'nevermore Documentation',
-     [u'Kenneth Reitz'], 1)
+    ('index', 'nevermore', u'nevermore Documentation', [u'Kenneth Reitz'], 1)
 ]
 
 # If true, show URL addresses after external links.
 #man_show_urls = False
-
 
 # -- Options for Texinfo output ------------------------------------------------
 
@@ -227,9 +224,10 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'nevermore', u'nevermore Documentation',
-   u'min.du', 'nevermore', 'One line description of project.',
-   'Miscellaneous'),
+    (
+        'index', 'nevermore', u'nevermore Documentation', u'min.du',
+        'nevermore', 'One line description of project.', 'Miscellaneous'
+    ),
 ]
 
 # Documents to append as an appendix to all manuals.

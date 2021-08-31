@@ -62,11 +62,14 @@ class NYUv2Dateset(Dataset):
 
         self.counts = self.__compute_class_probability()
 
-        self.transform = transforms.Compose([
-            # transforms.Resize(input_resolution,interpolation=Image.NEAREST),
-            transforms.ToTensor(),
-            # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        ]
+        self.transform = transforms.Compose(
+            [
+                # transforms.Resize(input_resolution,
+                # interpolation=Image.NEAREST),
+                transforms.ToTensor(),
+                # transforms.Normalize([0.485, 0.456, 0.406],
+                # [0.229, 0.224, 0.225]),
+            ]
         )
 
     def __len__(self):
@@ -92,7 +95,6 @@ class NYUv2Dateset(Dataset):
         gt_depth = self.load_depth(path=depth_path)
         gt_normal = self.load_normal(path=normal_path)
 
-
         if self.transform:
             image = self.transform(image)
         # image  C * H * W
@@ -114,8 +116,11 @@ class NYUv2Dateset(Dataset):
                 self.mask_root_dir, name + self.mask_extension
             )
 
-            raw_image = Image.open(mask_path).resize(self.output_size, Image.NEAREST)
-            imx_t = np.array(raw_image).reshape(self.output_size[0] * self.output_size[1])
+            raw_image = Image.open(mask_path
+                                   ).resize(self.output_size, Image.NEAREST)
+            imx_t = np.array(raw_image).reshape(
+                self.output_size[0] * self.output_size[1]
+            )
             imx_t[imx_t == 255] = len(NYUv2_CLASSES)
 
             for i in range(NUM_CLASSES):
@@ -131,10 +136,11 @@ class NYUv2Dateset(Dataset):
 
     def load_image(self, path=None):
         raw_image = Image.open(path)
-        # raw_image = np.transpose(raw_image.resize(RESOLUTION, Image.NEAREST), (2, 0, 1))
+        # raw_image = np.transpose(raw_image.resize(RESOLUTION, Image.NEAREST),
+        #  (2, 0, 1))
         # imx_t = np.array(raw_image, dtype=np.float32) / 255.0
         imx_t = raw_image.resize(self.input_size, Image.NEAREST)
-        
+
         return imx_t
 
     def load_mask(self, path=None):
@@ -157,8 +163,8 @@ class NYUv2Dateset(Dataset):
         raw_image = Image.open(path)
         raw_image = raw_image.resize(self.output_size, Image.NEAREST)
         imx_t = np.array(raw_image)
-        imx_t = np.transpose(imx_t, (2,0,1))
-        #return C * H * W
+        imx_t = np.transpose(imx_t, (2, 0, 1))
+        # return C * H * W
         return imx_t
 
 
@@ -170,12 +176,13 @@ if __name__ == "__main__":
     depth_dir = os.path.join(data_root, "depths")
     normal_dir = os.path.join(data_root, "normals")
 
-    objects_dataset = NYUv2Dateset(list_file=train_list_file,
-                                     img_dir=os.path.join(img_dir,"train"),
-                                     mask_dir=os.path.join(mask_dir,"train"),
-                                     depth_dir=os.path.join(depth_dir,"train"),
-                                     normal_dir=os.path.join(normal_dir,"train"),
-                                     )
+    objects_dataset = NYUv2Dateset(
+        list_file=train_list_file,
+        img_dir=os.path.join(img_dir, "train"),
+        mask_dir=os.path.join(mask_dir, "train"),
+        depth_dir=os.path.join(depth_dir, "train"),
+        normal_dir=os.path.join(normal_dir, "train"),
+    )
 
     print(objects_dataset.get_class_probability())
 

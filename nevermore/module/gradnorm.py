@@ -1,20 +1,14 @@
+import logging
 import os
 
-import hydra
 import pytorch_lightning as pl
 import torch
 import torchmetrics
-import logging
-from easydict import EasyDict as edict
-from omegaconf import DictConfig
-from pytorch_lightning.callbacks import ModelCheckpoint
 from torch.nn import functional as F
 
-from nevermore.metric import Abs_CosineSimilarity
 from nevermore.datamodule import NUM_CLASSES, NYUv2DataModule
-from nevermore.module import MultiSegNet, GradLoss
-
-
+from nevermore.metric import Abs_CosineSimilarity
+from nevermore.module import MultiSegNet
 
 logger = logging.getLogger(__name__)
 
@@ -94,9 +88,7 @@ class MultiSegnetNyuv2Model(pl.LightningModule):
 
         if self.task == 'normal':
             y_nor = batch['normal'].flatten(start_dim=1)
-            y_nor_hat = y_nor_hat.flatten(
-                start_dim=1
-            )
+            y_nor_hat = y_nor_hat.flatten(start_dim=1)
             loss_nor = torch.mean(F.cosine_similarity(y_nor_hat, y_nor))
             loss = loss_nor
             self.log('val_loss', loss)
@@ -107,7 +99,7 @@ class MultiSegnetNyuv2Model(pl.LightningModule):
         if self.task == 'segmentation':
             val_miou = self.miou.compute()
             self.log('val_seg_iou', val_miou)
-            logger.info("val_seg_iou:"+ str(val_miou.item()))
+            logger.info("val_seg_iou:" + str(val_miou.item()))
             self.miou.reset()
 
         if self.task == 'depth':
@@ -123,23 +115,28 @@ class MultiSegnetNyuv2Model(pl.LightningModule):
             self.cos.reset()
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.segnet.parameters(), lr=self.hparams.learning_rate)
-        lr_schedule = torch.optim.lr_scheduler.StepLR(optimizer, step_size=462, gamma=0.2)
+        optimizer = torch.optim.Adam(
+            self.segnet.parameters(), lr=self.hparams.learning_rate
+        )
+        lr_schedule = torch.optim.lr_scheduler.StepLR(
+            optimizer, step_size=462, gamma=0.2
+        )
         optim_dict = {'optimizer': optimizer, 'lr_scheduler': lr_schedule}
         return optim_dict
+
 
 def main():
 
     pl.seed_everything(3462)
-    INPUT_SIZE = (320,320)
-    OUTPUT_SIZE = (320,320)
+    INPUT_SIZE = (320, 320)
+    OUTPUT_SIZE = (320, 320)
     if os.path.exists('/running_package'):
         # run in remote, not local
         data_root = "/cluster_home/custom_data/NYU"
-        save_dir ="/job_data"
+        save_dir = "/job_data"
     else:
-        data_root ="/data/dixiao.wei/NYU"
-        save_dir ="/data/NYU/output"
+        data_root = "/data/dixiao.wei/NYU"
+        save_dir = "/data/NYU/output"
 
     dm = NYUv2DataModule(
         data_root=data_root,
@@ -147,11 +144,7 @@ def main():
         input_size=INPUT_SIZE,
         output_size=OUTPUT_SIZE
     )
-    model = MultiSegnetNyuv2Model(
-        learning_rate=2e-5,
-        task='segmentation',
-        output_channels=14
-    )
+    model = MultiSegnetNyuv2Model(learning_rate=2e-5, )
 
     trainer = pl.Trainer(
         max_epochs=1540,
@@ -160,9 +153,11 @@ def main():
         accelerator="ddp",
         log_every_n_steps=5,
         num_sanity_val_steps=0,
-        precision=16
+        precision=16,
+        default_root_dir=save_dir
     )
     trainer.fit(model, dm)
     pass
+
 
 main()

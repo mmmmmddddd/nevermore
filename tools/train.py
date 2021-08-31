@@ -6,7 +6,7 @@ from pl_extension.loggers import LoggingLogger
 from pl_extension.utilities.file_io import load_file
 from pytorch_lightning.callbacks import ModelCheckpoint
 
-import nevermore # noqa: F401
+import nevermore  # noqa: F401
 
 
 def main():

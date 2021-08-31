@@ -30,7 +30,9 @@ class MultiSegnetNYUv2Model(pl.LightningModule):
             nor_output_channels=3
         )
 
-        self.miou = torchmetrics.IoU(num_classes=len(NYUv2Dataset.CLASSES), ignore_index=0)
+        self.miou = torchmetrics.IoU(
+            num_classes=len(NYUv2Dataset.CLASSES), ignore_index=0
+        )
         self.rmse = torchmetrics.MeanSquaredError(squared=False)
         self.cos = Abs_CosineSimilarity(reduction='abs')
 

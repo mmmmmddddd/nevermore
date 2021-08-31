@@ -38,10 +38,10 @@ def test_NYUv2Dataset():
 
     fig = plt.figure()
 
-    a = fig.add_subplot(1, 2, 1)
+    _ = fig.add_subplot(1, 2, 1)
     plt.imshow(image)
 
-    a = fig.add_subplot(1, 2, 2)
+    _ = fig.add_subplot(1, 2, 2)
     plt.imshow(mask)
     # uncomment below if you want take a look
     # plt.show()

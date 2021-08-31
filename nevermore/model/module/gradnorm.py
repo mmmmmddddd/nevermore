@@ -1,12 +1,11 @@
 import logging
-import os
 
 import pytorch_lightning as pl
 import torch
 import torchmetrics
 from torch.nn import functional as F
 
-from nevermore.datamodule import NUM_CLASSES, NYUv2DataModule
+from nevermore.data import NYUv2Dataset
 from nevermore.metric import Abs_CosineSimilarity
 from nevermore.model.network import MultiSegNet
 
@@ -27,12 +26,14 @@ class MultiSegnetNyuv2Model(pl.LightningModule):
 
         self.segnet = MultiSegNet(
             input_channels=3,
-            seg_output_channels=NUM_CLASSES,
+            seg_output_channels=len(NYUv2Dataset.CLASSES),
             dep_output_channels=1,
             nor_output_channels=3
         )
 
-        self.miou = torchmetrics.IoU(num_classes=NUM_CLASSES, ignore_index=0)
+        self.miou = torchmetrics.IoU(
+            num_classes=len(NYUv2Dataset.CLASSES), ignore_index=0
+        )
         self.rmse = torchmetrics.MeanSquaredError(squared=False)
         self.cos = Abs_CosineSimilarity(reduction='abs')
 

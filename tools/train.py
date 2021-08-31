@@ -5,9 +5,8 @@ from easydict import EasyDict as edict
 from pl_extension.loggers import LoggingLogger
 from pl_extension.utilities.file_io import load_file
 from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.utilities.cli import LightningCLI
 
-import nevermore
+import nevermore # noqa: F401
 
 
 def main():

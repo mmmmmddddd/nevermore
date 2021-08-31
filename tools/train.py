@@ -1,11 +1,11 @@
 import os
 
-from easydict import EasyDict as edict
 import pytorch_lightning as pl
-from pytorch_lightning.utilities.cli import LightningCLI
-from pytorch_lightning.callbacks import ModelCheckpoint
+from easydict import EasyDict as edict
 from pl_extension.loggers import LoggingLogger
 from pl_extension.utilities.file_io import load_file
+from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.utilities.cli import LightningCLI
 
 import nevermore
 
@@ -54,7 +54,8 @@ def main():
     checkpoint_callback = ModelCheckpoint(
         monitor='val_loss',
         dirpath=save_dir,
-        filename='sample-NYUv2-' + cfg.model.init_args.task + '-{epoch:02d}-{val_loss:.2f}'
+        filename='sample-NYUv2-' + cfg.model.init_args.task +
+        '-{epoch:02d}-{val_loss:.2f}'
     )
 
     # ------------

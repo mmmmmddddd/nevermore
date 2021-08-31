@@ -1,2 +1,2 @@
-from .single_segnet_nyuv2 import SingleSegnetNYUv2Model
 from .multi_segnet_nyuv2 import MultiSegnetNYUv2Model
+from .single_segnet_nyuv2 import SingleSegnetNYUv2Model

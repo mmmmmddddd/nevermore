@@ -1,1 +1,1 @@
-from .segnet import SingleSegNet, MultiSegNet
+from .segnet import MultiSegNet, SingleSegNet

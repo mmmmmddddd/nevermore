@@ -1,8 +1,11 @@
-import pytest
-from tests import NYUv2_PATH, NYUv2_EXISTS
-from nevermore.data.dataset import NYUv2Dataset
-import matplotlib.pyplot as plt
 import os
+
+from tests import NYUv2_EXISTS, NYUv2_PATH
+
+import matplotlib.pyplot as plt
+import pytest
+
+from nevermore.data.dataset import NYUv2Dataset
 
 
 @pytest.mark.skipif(not NYUv2_EXISTS, reason="depends on NYUv2")

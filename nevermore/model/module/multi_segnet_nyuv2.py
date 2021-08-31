@@ -7,13 +7,13 @@ import torchmetrics
 from torch.nn import functional as F
 
 from nevermore.data import NYUv2DataModule
-from nevermore.model.network import MultiSegNet
 from nevermore.metric import Abs_CosineSimilarity
-
+from nevermore.model.network import MultiSegNet
 
 __all__ = ['MultiSegnetNYUv2Model']
 
 logger = logging.getLogger(__name__)
+
 
 class MultiSegnetNYUv2Model(pl.LightningModule):
 

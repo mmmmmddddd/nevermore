@@ -7,13 +7,13 @@ import torchmetrics
 from torch.nn import functional as F
 
 from nevermore.data import NYUv2Dataset
-from nevermore.model.network import SingleSegNet
 from nevermore.metric import Abs_CosineSimilarity
-
+from nevermore.model.network import SingleSegNet
 
 __all__ = ['SingleSegnetNYUv2Model']
 
 logger = logging.getLogger(__name__)
+
 
 class SingleSegnetNYUv2Model(pl.LightningModule):
 
@@ -39,7 +39,9 @@ class SingleSegnetNYUv2Model(pl.LightningModule):
             output_channels=task_output_channels[task],
         )
 
-        self.miou = torchmetrics.IoU(num_classes=len(NYUv2Dataset.CLASSES), ignore_index=0)
+        self.miou = torchmetrics.IoU(
+            num_classes=len(NYUv2Dataset.CLASSES), ignore_index=0
+        )
         self.rmse = torchmetrics.MeanSquaredError(squared=False)
         self.cos = Abs_CosineSimilarity(reduction='abs')
 

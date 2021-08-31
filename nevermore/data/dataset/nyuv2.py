@@ -2,36 +2,40 @@
 
 import os
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
 
-NYUv2_CLASSES = (
-    'background',  # always index 0
-    'bed',
-    'books',
-    'ceiling',
-    'chair',
-    'floor',
-    'furniture',
-    'objects',
-    'painting',
-    'sofa',
-    'table',
-    'tv',
-    'wall',
-    'window'
-)
-NUM_CLASSES = len(NYUv2_CLASSES)
+
+__all__ = ['NYUv2Dataset']
 
 
-class NYUv2Dateset(Dataset):
-    """NYUv2Dateset Dataset
-    from https://github.com/say4n/pytorch-segnet/blob/master/src/dataset.py
+class NYUv2Dataset(Dataset):
+
     """
+    NYUv2Dataset Dataset.
+    From https://github.com/say4n/pytorch-segnet/blob/master/src/dataset.py
+
+    """
+
+    CLASSES = (
+        'background',  # always index 0
+        'bed',
+        'books',
+        'ceiling',
+        'chair',
+        'floor',
+        'furniture',
+        'objects',
+        'painting',
+        'sofa',
+        'table',
+        'tv',
+        'wall',
+        'window'
+    )
 
     def __init__(
         self,
@@ -109,7 +113,7 @@ class NYUv2Dateset(Dataset):
         return data
 
     def __compute_class_probability(self):
-        counts = dict((i, 0) for i in range(NUM_CLASSES))
+        counts = dict((i, 0) for i in range(len(self.CLASSES)))
 
         for name in self.images:
             mask_path = os.path.join(
@@ -121,9 +125,9 @@ class NYUv2Dateset(Dataset):
             imx_t = np.array(raw_image).reshape(
                 self.output_size[0] * self.output_size[1]
             )
-            imx_t[imx_t == 255] = len(NYUv2_CLASSES)
+            imx_t[imx_t == 255] = len(self.CLASSES)
 
-            for i in range(NUM_CLASSES):
+            for i in range(len(self.CLASSES)):
                 counts[i] += np.sum(imx_t == i)
 
         return counts
@@ -148,7 +152,7 @@ class NYUv2Dateset(Dataset):
         raw_image = raw_image.resize(self.output_size, Image.NEAREST)
         imx_t = np.array(raw_image)
         # border
-        imx_t[imx_t == 255] = len(NYUv2_CLASSES)
+        imx_t[imx_t == 255] = len(self.CLASSES)
         # return H * W
         return imx_t
 
@@ -166,36 +170,3 @@ class NYUv2Dateset(Dataset):
         imx_t = np.transpose(imx_t, (2, 0, 1))
         # return C * H * W
         return imx_t
-
-
-if __name__ == "__main__":
-    data_root = '/data/dixiao.wei/NYU'
-    train_list_file = os.path.join(data_root, "train.txt")
-    img_dir = os.path.join(data_root, "images")
-    mask_dir = os.path.join(data_root, "segmentation")
-    depth_dir = os.path.join(data_root, "depths")
-    normal_dir = os.path.join(data_root, "normals")
-
-    objects_dataset = NYUv2Dateset(
-        list_file=train_list_file,
-        img_dir=os.path.join(img_dir, "train"),
-        mask_dir=os.path.join(mask_dir, "train"),
-        depth_dir=os.path.join(depth_dir, "train"),
-        normal_dir=os.path.join(normal_dir, "train"),
-    )
-
-    print(objects_dataset.get_class_probability())
-
-    sample = objects_dataset[0]
-    image, mask = sample['image'], sample['mask']
-
-    image.transpose_(0, 2)
-
-    fig = plt.figure()
-
-    a = fig.add_subplot(1, 2, 1)
-    plt.imshow(image)
-
-    a = fig.add_subplot(1, 2, 2)
-    plt.imshow(mask)
-    plt.show()

@@ -102,6 +102,6 @@ job.sh
 outputs
 
 # nevermore
-data
+./data
 tmp_*
 .logs

@@ -3,17 +3,25 @@ import os
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 
-from .dataset import NYUv2Dateset
+from nevermore.data.dataset import NYUv2Dataset
+
+
+__all__ = ['NYUv2DataModule']
 
 
 class NYUv2DataModule(pl.LightningDataModule):
 
+    """
+    DataModule for NYUV2.
+    """
+
     def __init__(
         self,
-        data_root=None,
-        batch_size=24,
-        input_size=None,
-        output_size=None
+        data_root,
+        input_size,
+        output_size,
+        batch_size,
+        num_workers,
     ):
         super().__init__()
 
@@ -24,18 +32,17 @@ class NYUv2DataModule(pl.LightningDataModule):
         self.mask_dir = os.path.join(data_root, "segmentation")
         self.depth_dir = os.path.join(data_root, "depths")
         self.normal_dir = os.path.join(data_root, "normals")
-        self.batch_size = batch_size
         self.input_size = input_size
         self.output_size = output_size
 
-    def prepare_data(self):
-        pass
+        self.batch_size = batch_size
+        self.num_workers = num_workers
 
     def setup(self, stage=None):
 
         # Assign train/val datasets for use in dataloaders
         if stage == 'fit' or stage is None:
-            self.train_dataset = NYUv2Dateset(
+            self.train_dataset = NYUv2Dataset(
                 list_file=self.train_list_file,
                 img_dir=os.path.join(self.img_dir, "train"),
                 mask_dir=os.path.join(self.mask_dir, "train"),
@@ -44,7 +51,7 @@ class NYUv2DataModule(pl.LightningDataModule):
                 input_size=self.input_size,
                 output_size=self.output_size
             )
-            self.val_dataset = NYUv2Dateset(
+            self.val_dataset = NYUv2Dataset(
                 list_file=self.val_list_file,
                 img_dir=os.path.join(self.img_dir, "test"),
                 mask_dir=os.path.join(self.mask_dir, "test"),
@@ -55,7 +62,7 @@ class NYUv2DataModule(pl.LightningDataModule):
             )
         # Assign test dataset for use in dataloader(s)
         if stage == 'test' or stage is None:
-            self.test_dataset = NYUv2Dateset(
+            self.test_dataset = NYUv2Dataset(
                 list_file=self.val_list_file,
                 img_dir=os.path.join(self.img_dir, "test"),
                 mask_dir=os.path.join(self.mask_dir, "test"),
@@ -70,7 +77,7 @@ class NYUv2DataModule(pl.LightningDataModule):
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
-            num_workers=4
+            num_workers=self.num_workers,
         )
 
     def val_dataloader(self):
@@ -78,7 +85,7 @@ class NYUv2DataModule(pl.LightningDataModule):
             self.val_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=4
+            num_workers=self.num_workers,
         )
 
     def test_dataloader(self):
@@ -86,5 +93,5 @@ class NYUv2DataModule(pl.LightningDataModule):
             self.test_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=4
+            num_workers=self.num_workers,
         )

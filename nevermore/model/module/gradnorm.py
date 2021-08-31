@@ -1,22 +1,21 @@
 import logging
-import os
 
 import pytorch_lightning as pl
 import torch
 import torchmetrics
 from torch.nn import functional as F
 
-from nevermore.datamodule import NUM_CLASSES, NYUv2DataModule
+from nevermore.data import NYUv2Dataset
 from nevermore.metric import Abs_CosineSimilarity
-from nevermore.module import MultiSegNet
+from nevermore.model.network import MultiSegNet
 
 logger = logging.getLogger(__name__)
 
 
-#########
-# MODEL #
-#########
 class MultiSegnetNyuv2Model(pl.LightningModule):
+    """
+    developing ...
+    """
 
     def __init__(
         self,
@@ -27,12 +26,14 @@ class MultiSegnetNyuv2Model(pl.LightningModule):
 
         self.segnet = MultiSegNet(
             input_channels=3,
-            seg_output_channels=NUM_CLASSES,
+            seg_output_channels=len(NYUv2Dataset.CLASSES),
             dep_output_channels=1,
             nor_output_channels=3
         )
 
-        self.miou = torchmetrics.IoU(num_classes=NUM_CLASSES, ignore_index=0)
+        self.miou = torchmetrics.IoU(
+            num_classes=len(NYUv2Dataset.CLASSES), ignore_index=0
+        )
         self.rmse = torchmetrics.MeanSquaredError(squared=False)
         self.cos = Abs_CosineSimilarity(reduction='abs')
 
@@ -123,41 +124,3 @@ class MultiSegnetNyuv2Model(pl.LightningModule):
         )
         optim_dict = {'optimizer': optimizer, 'lr_scheduler': lr_schedule}
         return optim_dict
-
-
-def main():
-
-    pl.seed_everything(3462)
-    INPUT_SIZE = (320, 320)
-    OUTPUT_SIZE = (320, 320)
-    if os.path.exists('/running_package'):
-        # run in remote, not local
-        data_root = "/cluster_home/custom_data/NYU"
-        save_dir = "/job_data"
-    else:
-        data_root = "/data/dixiao.wei/NYU"
-        save_dir = "/data/NYU/output"
-
-    dm = NYUv2DataModule(
-        data_root=data_root,
-        batch_size=16,
-        input_size=INPUT_SIZE,
-        output_size=OUTPUT_SIZE
-    )
-    model = MultiSegnetNyuv2Model(learning_rate=2e-5, )
-
-    trainer = pl.Trainer(
-        max_epochs=1540,
-        gpus=[0],
-        check_val_every_n_epoch=10,
-        accelerator="ddp",
-        log_every_n_steps=5,
-        num_sanity_val_steps=0,
-        precision=16,
-        default_root_dir=save_dir
-    )
-    trainer.fit(model, dm)
-    pass
-
-
-main()

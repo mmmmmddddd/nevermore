@@ -2,7 +2,8 @@
 ####### MLOps #######
 
 train:
-	python tools/train.py
+	export PYTHONPATH=`pwd`; \
+	python tools/train.py --config configs/baseline.py
 
 
 ####### DEVOps #######
@@ -18,7 +19,7 @@ upload:
 	python setup.py bdist_wheel upload -r hobot-local
 
 clean:
-	@rm -rf build dist *.egg-info
+	@rm -rf build dist *.egg-info tmp_*
 
 test:
 	pytest -s tests

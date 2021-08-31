@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 
 
+__all__ = ['GradLoss']
+
 class GradLoss(nn.Module):
 
     def __init__(self, alpha, n_task):

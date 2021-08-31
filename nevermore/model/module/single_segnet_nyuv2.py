@@ -6,19 +6,18 @@ import torch
 import torchmetrics
 from torch.nn import functional as F
 
-from nevermore.datamodule import NUM_CLASSES, NYUv2DataModule
+from nevermore.data import NYUv2Dataset
+from nevermore.model.network import SingleSegNet
 from nevermore.metric import Abs_CosineSimilarity
-from nevermore.module import SingleSegNet
+
+
+__all__ = ['SingleSegnetNYUv2Model']
 
 logger = logging.getLogger(__name__)
 
+class SingleSegnetNYUv2Model(pl.LightningModule):
 
-#########
-# MODEL #
-#########
-class SingleSegnetNyuv2Model(pl.LightningModule):
-
-    def __init__(self, learning_rate, task, output_channels):
+    def __init__(self, learning_rate, task):
         super().__init__()
         self.save_hyperparameters()
 
@@ -28,13 +27,19 @@ class SingleSegnetNyuv2Model(pl.LightningModule):
                 f"Expected argument `tsak` to be one of "
                 f"{allowed_task} but got {task}"
             )
+        task_output_channels = dict(
+            segmentation=len(NYUv2Dataset.CLASSES),
+            depth=1,
+            normal=3,
+        )
+
         self.task = task
         self.segnet = SingleSegNet(
             input_channels=3,
-            output_channels=output_channels,
+            output_channels=task_output_channels[task],
         )
 
-        self.miou = torchmetrics.IoU(num_classes=NUM_CLASSES, ignore_index=0)
+        self.miou = torchmetrics.IoU(num_classes=len(NYUv2Dataset.CLASSES), ignore_index=0)
         self.rmse = torchmetrics.MeanSquaredError(squared=False)
         self.cos = Abs_CosineSimilarity(reduction='abs')
 
@@ -125,43 +130,3 @@ class SingleSegnetNyuv2Model(pl.LightningModule):
         )
         optim_dict = {'optimizer': optimizer, 'lr_scheduler': lr_schedule}
         return optim_dict
-
-
-def main():
-
-    pl.seed_everything(3462)
-    INPUT_SIZE = (320, 320)
-    OUTPUT_SIZE = (320, 320)
-    if os.path.exists('/running_package'):
-        # run in remote, not local
-        data_root = "/cluster_home/custom_data/NYU"
-        save_dir = "/job_data"
-    else:
-        data_root = "/data/dixiao.wei/NYU"
-        save_dir = "/data/NYU/output"
-
-    dm = NYUv2DataModule(
-        data_root=data_root,
-        batch_size=16,
-        input_size=INPUT_SIZE,
-        output_size=OUTPUT_SIZE
-    )
-    model = SingleSegnetNyuv2Model(
-        learning_rate=2e-5, task='segmentation', output_channels=14
-    )
-
-    trainer = pl.Trainer(
-        max_epochs=1540,
-        gpus=[0],
-        check_val_every_n_epoch=1,
-        accelerator="ddp",
-        log_every_n_steps=5,
-        num_sanity_val_steps=0,
-        precision=16,
-        default_root_dir=save_dir
-    )
-    trainer.fit(model, dm)
-    pass
-
-
-main()

@@ -2,7 +2,8 @@
 ####### MLOps #######
 
 train:
-	python tools/train.py
+	export PYTHONPATH=`pwd`; \
+	python tools/train.py --config configs/baseline.py
 
 
 ####### DEVOps #######

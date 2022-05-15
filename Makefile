@@ -15,9 +15,6 @@ dev:
 build:
 	python setup.py build
 
-upload:
-	python setup.py bdist_wheel upload -r hobot-local
-
 clean:
 	@rm -rf build dist *.egg-info tmp_*
 

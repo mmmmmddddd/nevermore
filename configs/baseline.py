@@ -30,20 +30,3 @@ trainer = dict(
     progress_bar_refresh_rate=0,
     log_every_n_steps=5,
 )
-
-# ### traincli ###
-# traincli:
-#   gpus: "0,1,2,3"
-#   num_machines: 1
-#   submit_root: "./"
-#   job_name: "NYUv2-seg-lr2e-5-4gpus"
-#   job_pwd: 5160
-#   project_id: "TD2021002"
-#   docker_image: "docker.hobot.cc/imagesys/hdlt:fsd_multitask-cu10-20210621-v0.3"
-#   job_list:
-#     - "pip3 install pytorch-lightning --user"
-#     - "mkdir -p /home/users/dixiao.wei/.cache/torch/hub/checkpoints"
-#     - "cp /cluster_home/custom_data/vgg16-397923af.pth /home/users/dixiao.wei/.cache/torch/hub/checkpoints/"
-#     - "python3 train.py"
-#   task_label: "pytorch"
-#   priority: 5
